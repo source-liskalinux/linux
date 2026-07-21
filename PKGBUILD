@@ -33,7 +33,7 @@ prepare() {
   ./scripts/config --file .config --enable CONFIG_MODULE_COMPRESS
   ./scripts/config --file .config --enable CONFIG_MODULE_COMPRESS_ZSTD
   ./scripts/config --file .config --disable CONFIG_MODULE_COMPRESS_NONE
-  echo "===> [LOG]: Hardcoding all core storage, USB, network, and filesystem Drivers into Kernel...."
+  echo "===> [LOG]: Hardcoding all core storage, USB, network, and filesystem drivers into Kernel...."
   ./scripts/config --file .config --enable CONFIG_BLK_DEV_SR
   ./scripts/config --file .config --enable CONFIG_CHR_DEV_SG
   ./scripts/config --file .config --enable CONFIG_BLK_DEV_LOOP
