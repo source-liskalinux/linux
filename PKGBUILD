@@ -77,7 +77,7 @@ build() {
 
 package_linux() {
   pkgdesc="Liska Linux Main Kernel"
-  depends=('coreutils' 'kmod' 'linux-headers')
+  depends=('coreutils' 'kmod')
   optdepends=('linux-firmware')
   provides=("linux=${pkgver}")
   cd "linux-${pkgver}"
