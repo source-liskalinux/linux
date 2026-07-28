@@ -1,3 +1,8 @@
+# PKGBUILD For Liska Linux Kernel
+
+# Contributor: Janorovic Volkov <janorovicvolkov@gmail.com>
+# Maintainer: Janorovic Volkov <janorovicvolkov@gmail.com>
+
 pkgbase=linux
 pkgname=('linux' 'linux-headers')
 _kernel="-liska"
