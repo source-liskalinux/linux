@@ -22,23 +22,23 @@ sha256sums=('SKIP' 'SKIP')
 
 prepare() {
   cd "linux-${pkgver}"
-  echo "===> [LOG]: Setting up base configuration...."
+  echo "--> [PREPARE] Setting up base configuration...."
   cp ../config.x86_64 .config
-  echo "===> [LOG]: Injecting Liska Linux kernel identity...."
+  echo "--> [PREPARE] Injecting Liska Linux kernel identity...."
   ./scripts/config --file .config --set-str CONFIG_LOCALVERSION "${_kernel}"
   ./scripts/config --file .config --set-str CONFIG_DEFAULT_HOSTNAME "${_hostname}"
-  echo "===> [LOG]: Initializing total purge of all debug info...."
+  echo "--> [PREPARE] Initializing total purge of all debug info...."
   ./scripts/config --file .config --disable CONFIG_DEBUG_INFO
   ./scripts/config --file .config --disable CONFIG_DEBUG_INFO_BTF
   ./scripts/config --file .config --disable CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT
   ./scripts/config --file .config --disable CONFIG_DEBUG_INFO_DWARF4
   ./scripts/config --file .config --disable CONFIG_DEBUG_INFO_DWARF5
   ./scripts/config --file .config --enable CONFIG_DEBUG_INFO_NONE
-  echo "===> [LOG]: Forcing ZSTD compression on kernel modules...."
+  echo "--> [PREPARE] Forcing zstd compression on kernel modules...."
   ./scripts/config --file .config --enable CONFIG_MODULE_COMPRESS
   ./scripts/config --file .config --enable CONFIG_MODULE_COMPRESS_ZSTD
   ./scripts/config --file .config --disable CONFIG_MODULE_COMPRESS_NONE
-  echo "===> [LOG]: Hardcoding all core storage, USB, network, and filesystem drivers into Kernel...."
+  echo "--> [PREPARE] Hardcoding all core storage, USB, network, and filesystem drivers into Kernel...."
   ./scripts/config --file .config --enable CONFIG_BLK_DEV_SR
   ./scripts/config --file .config --enable CONFIG_CHR_DEV_SG
   ./scripts/config --file .config --enable CONFIG_BLK_DEV_LOOP
@@ -70,7 +70,7 @@ prepare() {
   ./scripts/config --file .config --enable CONFIG_FAT_FS
   ./scripts/config --file .config --enable CONFIG_VFAT_FS
   ./scripts/config --file .config --enable CONFIG_EXT4_FS
-  echo "===> [LOG]: Resolving dependencies and finalizing .config...."
+  echo "--> [PREPARE] Resolving dependencies and finalizing .config...."
   make olddefconfig
   make clean
 }
@@ -86,18 +86,18 @@ package_linux() {
   optdepends=('linux-firmware')
   provides=("linux=${pkgver}")
   cd "linux-${pkgver}"
-  echo "===> [INFO]: Installing kernel modules into package directory...."
+  echo "--> [PKG LINUX] Installing kernel modules into package directory...."
   make INSTALL_MOD_PATH="${pkgdir}" modules_install
   rm -f "${pkgdir}"/lib/modules/${pkgver}${_kernel}/source
   rm -f "${pkgdir}"/lib/modules/${pkgver}${_kernel}/build
   if [ -d "${pkgdir}/lib/modules/" ]; then
      find "${pkgdir}/lib/modules/" -name "*.log" -type f -delete
   fi
-  echo "===> [INFO]: Installing kernel image..."
+  echo "--> [PKG LINUX] Installing kernel image...."
   install -Dm644 "$(make -s image_name)" "${pkgdir}/boot/vmlinuz-${pkgbase}"
   install -Dm644 COPYING "${pkgdir}/usr/share/licenses/linux/GPL2.txt"
   rm -f "${pkgdir}/boot/vmlinux" 2>/dev/null || true
-  echo "===> [INFO]: Compressing remaining uncompressed modules with ZSTD...."
+  echo "--> [PKG LINUX] Compressing remaining uncompressed modules with zstd...."
   find "${pkgdir}/lib/modules/" -type f -name "*.ko" -exec zstd -19 --rm -f {} + 2>/dev/null || true
 }			
 
@@ -105,11 +105,11 @@ package_linux-headers() {
   pkgdesc="Liska Linux Headers Kernel"
   provides=("linux-headers=${pkgver}")  
   cd "linux-${pkgver}"
-  echo "===> [INFO]: Populating kernel headers infrastructure...."
+  echo "--> [PKG LINUX-HEADERS] Populating kernel headers infrastructure...."
   install -Dt "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -m644 .config Makefile Module.symvers
   install -Dt "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build/kernel" -m644 kernel/Makefile
   cp -t "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -a include scripts
-  echo "===> [INFO]: Sweeping build residues out of headers...."
+  echo "--> [PKG LINUX-HEADERS] Sweeping build residues out of headers...."
   find "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -name "*.o" -type f -delete
   find "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -name "*.log" -type f -delete
   find "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -name "*.a" -type f -delete
