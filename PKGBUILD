@@ -12,7 +12,7 @@ pkgrel=1
 arch=('x86_64')
 url="https://www.kernel.org"
 license=('GPL-2.0-only')
-makedepends=('bc' 'libelf' 'pahole' 'resolvconf' 'systemd-tools' 'kmod' 'inetutils' 'xmlto' 'docbook-xsl' 'kconfig' 'zstd')
+makedepends=('bc' 'elfutils' 'libelf' 'pahole' 'resolvconf' 'systemd-tools' 'kmod' 'inetutils' 'xmlto' 'docbook-xsl' 'kconfig' 'zstd')
 options=('strip' '!debug')
 source=(
   "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${pkgver}.tar.xz"
