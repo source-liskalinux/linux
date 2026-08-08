@@ -3,8 +3,7 @@
 # Contributor: Janorovic Volkov <janorovicvolkov@gmail.com>
 # Maintainer: Janorovic Volkov <janorovicvolkov@gmail.com>
 
-pkgbase=linux
-pkgname=('linux' 'linux-headers')
+pkgname=linux
 _kernel="-liska"
 _hostname="liskalinux"
 pkgver=7.1.7
