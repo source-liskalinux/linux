@@ -21,7 +21,7 @@ source=(
 sha256sums=('SKIP' 'SKIP')
 
 prepare() {
-  cd "linux-${pkgver}"
+  cd "${srcdir}/linux-${pkgver}"
   echo "--> [PREPARE] Setting up base configuration...."
   cp ../config.x86_64 .config
   echo "--> [PREPARE] Injecting Liska Linux kernel identity...."
@@ -76,7 +76,7 @@ prepare() {
 }
 
 build() {
-  cd "linux-${pkgver}"
+  cd "${srcdir}/linux-${pkgver}"
   make -j$(nproc) all
 }
 
@@ -85,7 +85,7 @@ package_linux() {
   depends=('coreutils' 'kmod')
   optdepends=('linux-firmware')
   provides=("linux=${pkgver}")
-  cd "linux-${pkgver}"
+  cd "${srcdir}/linux-${pkgver}"
   echo "--> [PKG LINUX] Installing kernel modules into package directory...."
   make INSTALL_MOD_PATH="${pkgdir}" modules_install
   rm -f "${pkgdir}"/lib/modules/${pkgver}${_kernel}/source
@@ -104,7 +104,7 @@ package_linux() {
 package_linux-headers() {
   pkgdesc="Liska Linux Headers Kernel"
   provides=("linux-headers=${pkgver}")  
-  cd "linux-${pkgver}"
+  cd "${srcdir}/linux-${pkgver}"
   echo "--> [PKG LINUX-HEADERS] Populating kernel headers infrastructure...."
   install -Dt "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -m644 .config Makefile Module.symvers
   install -Dt "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build/kernel" -m644 kernel/Makefile
