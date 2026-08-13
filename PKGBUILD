@@ -7,7 +7,7 @@ pkgname=linux
 pkgbase=linux
 _kernel="-liska"
 _hostname="liskalinux"
-pkgver=7.1.7
+pkgver=7.1.8
 pkgrel=1
 pkgdesc="Liska Linux Kernel and Headers"
 arch=('x86_64')
@@ -76,12 +76,18 @@ build() {
 package() {
     cd "${srcdir}/linux-${pkgver}"
     echo "--> [PACKAGE] Installing kernel modules...."
-    make INSTALL_MOD_PATH="${pkgdir}" modules_install
+    make INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
+    if [ ! -d "${pkgdir}/lib" ]; then
+        ln -s usr/lib "${pkgdir}/lib"
+    fi
     echo "--> [PACKAGE] Installing kernel image as /boot/vmlinuz-linux...."
     install -Dm644 "$(make -s image_name)" "${pkgdir}/boot/vmlinuz-linux"
     install -Dm644 COPYING "${pkgdir}/usr/share/licenses/${pkgname}/GPL2.txt"
     echo "--> [PACKAGE] Populating kernel headers infrastructure...."
     local builddir="${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build"
+    rm -f "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build"
+    rm -f "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/source"
+    mkdir -p "${builddir}"
     install -Dt "${builddir}" -m644 .config Makefile Module.symvers
     install -Dt "${builddir}/kernel" -m644 kernel/Makefile
     cp -t "${builddir}" -a include scripts
@@ -90,5 +96,6 @@ package() {
     find "${builddir}" -name "*.log" -type f -delete
     find "${builddir}" -name "*.a" -type f -delete
     echo "--> [PACKAGE] Compressing remaining uncompressed modules with zstd...."
-    find "${pkgdir}/lib/modules/" -type f -name "*.ko" -exec zstd -19 --rm -f {} + 2>/dev/null || true
+    find "${pkgdir}/usr/lib/modules/" -type f -name "*.ko" -exec zstd -19 --rm -f {} + 2>/dev/null || true
+    rm -f "${pkgdir}/lib"
 }
