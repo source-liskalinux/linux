@@ -6,7 +6,7 @@
 pkgname=linux
 _kernel="-liska"
 _hostname="liskalinux"
-pkgver=7.1.7
+pkgver=7.1.8
 pkgrel=1
 arch=('x86_64')
 url="https://www.kernel.org"
