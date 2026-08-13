@@ -11,6 +11,8 @@ pkgrel=1
 arch=('x86_64')
 url="https://www.kernel.org"
 license=('GPL-2.0-only')
+depends=('coreutils' 'kmod')
+optdepends=('linux-firmware')
 makedepends=('bc' 'elfutils' 'libelf' 'pahole' 'resolvconf' 'systemd-tools' 'kmod' 'inetutils' 'xmlto' 'docbook-xsl' 'kconfig' 'zstd')
 options=('strip' '!debug')
 source=(
@@ -80,10 +82,6 @@ build() {
 }
 
 package_linux() {
-  pkgdesc="Liska Linux Main Kernel"
-  depends=('coreutils' 'kmod')
-  optdepends=('linux-firmware')
-  provides=("linux=${pkgver}")
   cd "${srcdir}/linux-${pkgver}"
   echo "--> [PKG LINUX] Installing kernel modules into package directory...."
   make INSTALL_MOD_PATH="${pkgdir}" modules_install
@@ -98,11 +96,6 @@ package_linux() {
   rm -f "${pkgdir}/boot/vmlinux" 2>/dev/null || true
   echo "--> [PKG LINUX] Compressing remaining uncompressed modules with zstd...."
   find "${pkgdir}/lib/modules/" -type f -name "*.ko" -exec zstd -19 --rm -f {} + 2>/dev/null || true
-}			
-
-package_linux-headers() {
-  pkgdesc="Liska Linux Headers Kernel"
-  provides=("linux-headers=${pkgver}")  
   cd "${srcdir}/linux-${pkgver}"
   echo "--> [PKG LINUX-HEADERS] Populating kernel headers infrastructure...."
   install -Dt "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build" -m644 .config Makefile Module.symvers
