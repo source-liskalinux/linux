@@ -7,6 +7,16 @@ pkgname=linux
 pkgbase=linux
 _kernel="-liska"
 _hostname="liskalinux"
+# _kernelver drives ONLY the source tarball URL and srcdir path below. Kept
+# separate from pkgver because kernel.org's tarball naming is inconsistent:
+# X.Y.0 releases are published as linux-X.Y.tar.xz (no trailing .0), while
+# X.Y.Z releases with Z>0 are linux-X.Y.Z.tar.xz. pkgver, on the other hand
+# follows the kernel's actual X.Y.Z version scheme (matching KERNELRELEASE/
+# `uname -r`), so it stays "7.2.0" here even though the tarball is fetched
+# as "linux-7.2.tar.xz". The /lib/modules/<...> directory name is derived
+# independently in package() via `make -s kernelrelease`, so it's correct
+# regardless of what either of these two variables is set to.
+_kernelver=7.2
 pkgver=7.2.0
 pkgrel=1
 pkgdesc="Liska Linux Kernel and Headers"
@@ -18,13 +28,13 @@ optdepends=('linux-firmware')
 makedepends=('bc' 'elfutils' 'libelf' 'pahole' 'kmod' 'inetutils' 'zstd')
 options=('strip' '!debug')
 source=(
-  "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${pkgver}.tar.xz"
+  "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${_kernelver}.tar.xz"
   "https://gitlab.archlinux.org/archlinux/packaging/packages/linux/-/raw/main/config.x86_64"
 )
 sha256sums=('SKIP' 'SKIP')
 
 prepare() {
-    cd "${srcdir}/linux-${pkgver}"
+    cd "${srcdir}/linux-${_kernelver}"
     echo "--> [PREPARE] Setting up base configuration...."
     cp ../config.x86_64 .config
     echo "--> [PREPARE] Injecting Liska Linux kernel identity...."
@@ -68,14 +78,32 @@ prepare() {
     make clean
 }
 
+# lkmake calls this automatically right after prepare() and uses its
+# output as the final pkgver, this is the same idea as package()'s local
+# _kernver: ask the kernel itself for its real X.Y.Z release instead of
+# hardcoding/guessing it. Needs to run after prepare() because CONFIG_LOCALVERSION
+# (the "-liska" suffix) only exists in .config once prepare() has written it.
+# The suffix is stripped because pkgver format disallows "-".
+pkgver() {
+    cd "${srcdir}/linux-${_kernelver}"
+    make -s kernelrelease | sed 's/-.*//'
+}
+
 build() {
-    cd "${srcdir}/linux-${pkgver}"
+    cd "${srcdir}/linux-${_kernelver}"
     make -j$(nproc) all
 }
 
 package() {
-    cd "${srcdir}/linux-${pkgver}"
-    echo "--> [PACKAGE] Installing kernel modules...."
+    cd "${srcdir}/linux-${_kernelver}"
+    # kernel.org drops the trailing ".0" sublevel from the tarball name for
+    # X.Y.0 releases (e.g. linux-7.2.tar.xz), but KERNELRELEASE always keeps
+    # all three numbers (7.2.0-liska). Neither pkgver nor _kernelver reliably
+    # matches the module directory `make modules_install` actually creates,
+    # so ask the kernel itself for its real release string instead of
+    # gluing version variables together manually.
+    local _kernver="$(make -s kernelrelease)"
+    echo "--> [PACKAGE] Installing kernel modules for ${_kernver}...."
     make INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
     if [ ! -d "${pkgdir}/lib" ]; then
         ln -s usr/lib "${pkgdir}/lib"
@@ -84,9 +112,9 @@ package() {
     install -Dm644 "$(make -s image_name)" "${pkgdir}/boot/vmlinuz-linux"
     install -Dm644 COPYING "${pkgdir}/usr/share/licenses/${pkgname}/GPL2.txt"
     echo "--> [PACKAGE] Populating kernel headers infrastructure...."
-    local builddir="${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build"
-    rm -f "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build"
-    rm -f "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/source"
+    local builddir="${pkgdir}/usr/lib/modules/${_kernver}/build"
+    rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build"
+    rm -f "${pkgdir}/usr/lib/modules/${_kernver}/source"
     mkdir -p "${builddir}"
     install -Dt "${builddir}" -m644 .config Makefile Module.symvers
     install -Dt "${builddir}/kernel" -m644 kernel/Makefile
