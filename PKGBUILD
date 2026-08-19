@@ -83,7 +83,7 @@ build() {
 
 package() {
     cd "${srcdir}/linux-${_kernelver}"
-    echo "--> [PACKAGE] Installing kernel modules for ${pkgname} ${pkgver}-${_kernel}...."
+    echo "--> [PACKAGE] Installing kernel modules for ${pkgname} ${pkgver}${_kernel}...."
     make INSTALL_MOD_PATH="${pkgdir}/usr" modules_install
     if [ ! -d "${pkgdir}/lib" ]; then
         ln -s usr/lib "${pkgdir}/lib"
@@ -92,9 +92,9 @@ package() {
     install -Dm644 "$(make -s image_name)" "${pkgdir}/boot/vmlinuz-linux"
     install -Dm644 COPYING "${pkgdir}/usr/share/licenses/${pkgname}/GPL2.txt"
     echo "--> [PACKAGE] Populating kernel headers infrastructure...."
-    local builddir="${pkgdir}/usr/lib/modules/${pkgver}-${_kernel}/build"
-    rm -f "${pkgdir}/usr/lib/modules/${pkgver}-${_kernel}/build"
-    rm -f "${pkgdir}/usr/lib/modules/${pkgver}-${_kernel}/source"
+    local builddir="${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build"
+    rm -f "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/build"
+    rm -f "${pkgdir}/usr/lib/modules/${pkgver}${_kernel}/source"
     mkdir -p "${builddir}"
     install -Dt "${builddir}" -m644 .config Makefile Module.symvers
     install -Dt "${builddir}/kernel" -m644 kernel/Makefile
